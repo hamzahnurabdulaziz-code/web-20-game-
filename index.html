@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduVerse AI - Platform 20 Game Edukasi Interaktif</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Google Fonts: Inter & Outfit -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f5ff',
+              100: '#e0ebff',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+    .font-display {
+      font-family: 'Outfit', sans-serif;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-modal {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .game-card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .game-card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px -10px rgba(59, 130, 246, 0.3);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+
+  <!-- ================= HEADER & NAVBAR ================= -->
+  <header class="sticky top-0 z-40 glass-card border-b border-slate-800 px-4 lg:px-8 py-3">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="app.showHub()">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/30">
+          <i class="fa-solid font-bold text-xl fa-rocket"></i>
+        </div>
+        <div>
+          <h1 class="font-display font-extrabold text-xl tracking-tight text-white flex items-center gap-2">
+            EduVerse <span class="bg-gradient-to-r from-brand-500 to-purple-400 bg-clip-text text-transparent">AI</span>
+          </h1>
+          <p class="text-xs text-slate-400 font-medium">20 Game Edukasi Interaktif</p>
+        </div>
+      </div>
+
+      <!-- Stats Bar & Badges -->
+      <div class="flex items-center gap-3 sm:gap-6 bg-slate-800/80 px-4 py-1.5 rounded-full border border-slate-700/60 text-xs sm:text-sm">
+        <div class="flex items-center gap-1.5 text-amber-400 font-semibold" title="Total XP">
+          <i class="fa-solid fa-coins text-amber-400"></i>
+          <span id="stat-xp">0</span> <span class="text-slate-400 font-normal">XP</span>
+        </div>
+        <div class="h-4 w-px bg-slate-700"></div>
+        <div class="flex items-center gap-1.5 text-emerald-400 font-semibold" title="Level Pengguna">
+          <i class="fa-solid fa-trophy"></i>
+          <span class="text-slate-400 font-normal">Lvl</span> <span id="stat-level">1</span>
+        </div>
+        <div class="h-4 w-px bg-slate-700"></div>
+        <div class="flex items-center gap-1.5 text-purple-400 font-semibold cursor-pointer" onclick="app.showBadgesModal()" title="Lihat Lencana">
+          <i class="fa-solid fa-award"></i>
+          <span id="stat-badges-count">0/6</span>
+        </div>
+      </div>
+
+      <!-- Controls & Gemini Settings -->
+      <div class="flex items-center gap-2">
+        <!-- Sound Toggle -->
+        <button id="btn-sound" onclick="audioEngine.toggleSound()" class="p-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700 transition" title="Efek Suara">
+          <i class="fa-solid fa-volume-high" id="sound-icon"></i>
+        </button>
+
+        <!-- Gemini API Key Button -->
+        <button onclick="app.showSettingsModal()" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition text-xs font-semibold">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" id="api-status-dot"></span>
+          <i class="fa-solid fa-key text-amber-400"></i>
+          <span class="hidden md:inline text-slate-300">API Key</span>
+        </button>
+
+        <!-- Global Gemini Tutor -->
+        <button onclick="app.openGlobalTutor()" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-semibold text-xs sm:text-sm shadow-md shadow-brand-500/20 transition">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span>Tanya AI Tutor</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= MAIN DASHBOARD CONTAINER ================= -->
+  <main id="main-content" class="max-w-7xl mx-auto px-4 lg:px-8 py-8 flex-1 w-full">
+
+    <!-- Hero Banner & Filter Controls -->
+    <div class="mb-8">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 class="font-display text-2xl sm:text-3xl font-bold text-white">Pilih Arena Belajar Kamu ✨</h2>
+          <p class="text-slate-400 text-sm mt-1">Eksplorasi 20 permainan interaktif dan dapatkan petunjuk cerdas dari Gemini AI!</p>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="relative w-full md:w-72">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input type="text" id="search-input" onkeyup="app.filterGames()" placeholder="Cari nama game atau topik..." class="w-full bg-slate-800/90 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+        </div>
+      </div>
+
+      <!-- Category Filter Tabs -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none" id="category-filters">
+        <button onclick="app.setCategory('all', event)" class="cat-btn active px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-brand-600 text-white transition shadow-sm">Semua (20)</button>
+        <button onclick="app.setCategory('math', event)" class="cat-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap bg-slate-800 hover:bg-slate-700 text-slate-300 transition">🧮 Matematika</button>
+        <button onclick="app.setCategory('lang', event)" class="cat-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap bg-slate-800 hover:bg-slate-700 text-slate-300 transition">📚 Bahasa & Literasi</button>
+        <button onclick="app.setCategory('science', event)" class="cat-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap bg-slate-800 hover:bg-slate-700 text-slate-300 transition">🧪 Sains & Alam</button>
+        <button onclick="app.setCategory('coding', event)" class="cat-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap bg-slate-800 hover:bg-slate-700 text-slate-300 transition">💻 Koding & Logika</button>
+        <button onclick="app.setCategory('general', event)" class="cat-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap bg-slate-800 hover:bg-slate-700 text-slate-300 transition">🎨 Umum & Seni</button>
+      </div>
+    </div>
+
+    <!-- 20 Games Grid Container -->
+    <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+      <!-- Game Cards dynamically injected by JavaScript -->
+    </div>
+
+  </main>
+
+  <!-- ================= GAME CONTAINER MODAL / SCREEN ================= -->
+  <div id="game-modal" class="fixed inset-0 z-50 hidden bg-slate-950/90 backdrop-blur-md overflow-y-auto">
+    <div class="min-h-screen px-3 sm:px-6 py-6 flex flex-col items-center justify-center">
+      <div class="w-full max-w-4xl glass-modal rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden flex flex-col my-auto">
+        
+        <!-- Modal Topbar -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/60">
+          <div class="flex items-center gap-3">
+            <span id="game-modal-icon" class="text-2xl">🎮</span>
+            <div>
+              <h3 id="game-modal-title" class="font-display font-bold text-lg text-white">Nama Game</h3>
+              <p id="game-modal-category" class="text-xs text-brand-400 font-medium">Kategori</p>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <!-- Gemini Tutor Button in Game -->
+            <button onclick="app.askCurrentGameTutor()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-300 text-xs font-semibold transition">
+              <i class="fa-solid fa-lightbulb text-amber-300"></i>
+              <span>Hint AI Tutor</span>
+            </button>
+            <!-- AI Generate Quiz Button -->
+            <button onclick="app.generateAIQuizCurrentGame()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500/40 text-emerald-300 text-xs font-semibold transition">
+              <i class="fa-solid fa-rotate-right"></i>
+              <span class="hidden sm:inline">Kuis AI Baru</span>
+            </button>
+            <!-- Close Modal -->
+            <button onclick="app.closeGameModal()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition">
+              <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Game Workspace Container -->
+        <div id="game-workspace" class="p-4 sm:p-8 min-h-[420px] flex flex-col justify-center items-center relative">
+          <!-- Game interactive interface loaded dynamically -->
+        </div>
+
+        <!-- Modal Footer Info -->
+        <div class="px-6 py-3 border-t border-slate-800/80 bg-slate-900/40 flex items-center justify-between text-xs text-slate-400">
+          <span>Skor Sesi: <strong id="game-session-score" class="text-amber-400">0</strong> XP</span>
+          <span class="flex items-center gap-1"><i class="fa-solid fa-brain text-brand-400"></i> Terintegrasi Gemini AI</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= GEMINI TUTOR / CHAT DRAWER ================= -->
+  <div id="tutor-drawer" class="fixed inset-y-0 right-0 z-50 w-full sm:w-96 glass-modal border-l border-slate-700/80 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/80">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white">
+          <i class="fa-solid fa-robot"></i>
+        </div>
+        <div>
+          <h4 class="font-display font-bold text-sm text-white">Gemini AI Tutor</h4>
+          <p class="text-[10px] text-emerald-400 font-medium">Asisten Belajar Interaktif</p>
+        </div>
+      </div>
+      <button onclick="app.closeTutorDrawer()" class="p-2 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Chat Messages -->
+    <div id="tutor-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs sm:text-sm">
+      <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-3 text-slate-200">
+        👋 Halo! Saya <strong>Gemini AI Tutor</strong>. Punya pertanyaan tentang materi game ini atau butuh penjelasan konsep? Tanyakan saja pada saya!
+      </div>
+    </div>
+
+    <!-- Chat Input Form -->
+    <form onsubmit="app.handleTutorSubmit(event)" class="p-3 border-t border-slate-800 bg-slate-900/90 flex gap-2">
+      <input type="text" id="tutor-input" placeholder="Tanyakan petunjuk atau rumus..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+      <button type="submit" class="px-3 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold transition flex items-center justify-center">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </form>
+  </div>
+
+  <!-- ================= AI EVALUATION MODAL ================= -->
+  <div id="eval-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-md glass-modal rounded-3xl p-6 border border-slate-700 text-center space-y-4">
+      <div class="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto text-3xl">
+        <i class="fa-solid fa-star"></i>
+      </div>
+      <h3 class="font-display font-bold text-xl text-white">Sesi Permainan Selesai!</h3>
+      <div class="bg-slate-800/80 rounded-xl p-3 border border-slate-700 flex justify-around text-xs">
+        <div>
+          <span class="block text-slate-400">Skor Diperoleh</span>
+          <span id="eval-score" class="text-base font-bold text-amber-400">+0 XP</span>
+        </div>
+        <div class="border-r border-slate-700"></div>
+        <div>
+          <span class="block text-slate-400">Akurasi</span>
+          <span id="eval-accuracy" class="text-base font-bold text-emerald-400">100%</span>
+        </div>
+      </div>
+      <div class="text-left bg-slate-900/80 rounded-xl p-4 border border-slate-800 text-xs text-slate-300 space-y-1">
+        <p class="font-bold text-brand-400 flex items-center gap-1 mb-1">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Evaluasi Gemini AI:
+        </p>
+        <p id="eval-text" class="leading-relaxed text-slate-300">Menghubungkan ke Gemini AI...</p>
+      </div>
+      <button onclick="app.closeEvalModal()" class="w-full py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs transition">
+        Lanjutkan Belajar
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= SETTINGS & API KEY MODAL ================= -->
+  <div id="settings-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-md glass-modal rounded-3xl p-6 border border-slate-700 space-y-5">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
+          <i class="fa-solid fa-key text-amber-400"></i> Gemini API Settings
+        </h3>
+        <button onclick="app.closeSettingsModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Platform ini menggunakan API <strong>gemini-3-flash-preview</strong> untuk fitur Tutor AI & Generator Kuis. Masukkan API Key Anda sendiri (opsional). Jika dikosongkan, sistem akan menggunakan mode simulasi cerdas otomatis.
+      </p>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-400 mb-1">Google Gemini API Key</label>
+        <input type="password" id="api-key-input" placeholder="AIzaSy..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="app.saveApiKey()" class="w-full py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold transition">
+          Simpan Pengaturan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= BADGES MODAL ================= -->
+  <div id="badges-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-lg glass-modal rounded-3xl p-6 border border-slate-700 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
+          <i class="fa-solid fa-award text-purple-400"></i> Lencana & Pencapaian
+        </h3>
+        <button onclick="app.closeBadgesModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div id="badges-container" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <!-- Badges rendered via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="border-t border-slate-800 bg-slate-950/60 py-4 text-center text-xs text-slate-400">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p>© 2026 EduVerse AI — Platform 20 Game Edukasi Terintegrasi Gemini API</p>
+      <div class="flex gap-4 text-slate-400">
+        <span class="hover:text-slate-300 cursor-pointer" onclick="app.showSettingsModal()">Gemini Settings</span>
+        <span>•</span>
+        <span class="hover:text-slate-300 cursor-pointer" onclick="app.openGlobalTutor()">AI Study Buddy</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= JAVASCRIPT LOGIC & ENGINE ================= -->
+  <script>
+    /* ==========================================================================
+       1. WEB AUDIO API SYNTHESIZER (PURE JS SOUND FX)
+       ========================================================================== */
+    class AudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.soundEnabled = true;
+      }
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      }
+      toggleSound() {
+        this.soundEnabled = !this.soundEnabled;
+        const icon = document.getElementById('sound-icon');
+        if (this.soundEnabled) {
+          icon.className = 'fa-solid fa-volume-high';
+          this.playClick();
+        } else {
+          icon.className = 'fa-solid fa-volume-xmark';
+        }
+      }
+      playNote(freq, type = 'sine', duration = 0.15) {
+        if (!this.soundEnabled) return;
+        this.init();
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {}
+      }
+      playClick() { this.playNote(600, 'sine', 0.05); }
+      playCorrect() {
+        this.playNote(523.25, 'triangle', 0.1);
+        setTimeout(() => this.playNote(659.25, 'triangle', 0.15), 100);
+      }
+      playWrong() {
+        this.playNote(220, 'sawtooth', 0.2);
+        setTimeout(() => this.playNote(180, 'sawtooth', 0.25), 150);
+      }
+      playWin() {
+        const notes = [440, 554.37, 659.25, 880];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => this.playNote(freq, 'triangle', 0.2), idx * 120);
+        });
+      }
+    }
+    const audioEngine = new AudioEngine();
+
+    /* ==========================================================================
+       2. GEMINI AI INTEGRATION SERVICE
+       ========================================================================== */
+    class GeminiService {
+      constructor() {
+        this.defaultModel = 'gemini-3-flash-preview';
+      }
+
+      getApiKey() {
+        return localStorage.getItem('gemini_api_key') || '';
+      }
+
+      async generateContent(prompt, systemInstruction = "Kamu adalah tutor edukasi interaktif untuk anak & pelajar.") {
+        const apiKey = this.getApiKey();
+        if (!apiKey) return this.getOfflineFallbackText(prompt);
+
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${this.defaultModel}:generateContent?key=${apiKey}`;
+        const payload = {
+          contents: [{ parts: [{ text: prompt }] }],
+          systemInstruction: { parts: [{ text: systemInstruction }] }
+        };
+
+        try {
+          const res = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          const data = await res.json();
+          return data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, AI tidak dapat menghasilkan respon saat ini.";
+        } catch (err) {
+          console.warn("Gemini API call fallback to offline simulation:", err);
+          return this.getOfflineFallbackText(prompt);
+        }
+      }
+
+      async generateQuizJSON(topic, level = 'Sedang') {
+        const apiKey = this.getApiKey();
+        if (!apiKey) return null;
+
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${this.defaultModel}:generateContent?key=${apiKey}`;
+        const systemPrompt = `Buatkan 3 pertanyaan pilihan ganda interaktif tentang ${topic} dengan tingkat kesulitan ${level} dalam Bahasa Indonesia. Format respon HARUS berupa array JSON murni tanpa markdown.`;
+        
+        const payload = {
+          contents: [{ parts: [{ text: `Buat kuis topik: ${topic}` }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "ARRAY",
+              items: {
+                type: "OBJECT",
+                properties: {
+                  question: { type: "STRING" },
+                  options: { type: "ARRAY", items: { type: "STRING" } },
+                  answerIndex: { type: "INTEGER" },
+                  explanation: { type: "STRING" }
+                },
+                required: ["question", "options", "answerIndex", "explanation"]
+              }
+            }
+          },
+          systemInstruction: { parts: [{ text: systemPrompt }] }
+        };
+
+        try {
+          const res = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (!res.ok) throw new Error("API call error");
+          const data = await res.json();
+          const jsonStr = data.candidates[0].content.parts[0].text;
+          return JSON.parse(jsonStr);
+        } catch (err) {
+          console.warn("Quiz JSON fallback:", err);
+          return null;
+        }
+      }
+
+      getOfflineFallbackText(prompt) {
+        if (prompt.includes("hint") || prompt.includes("petunjuk")) {
+          return "💡 <strong>Petunjuk Tutor Offline</strong>: Bacalah soal dengan cermat, perhatikan setiap langkah logisnya, dan cobalah mengeliminasi jawaban yang tidak memungkinkan!";
+        }
+        return "✨ <strong>Respon AI Offline</strong>: Hebat sekali! Terus tingkatkan semangat belajar kamu di EduVerse AI!";
+      }
+    }
+    const geminiService = new GeminiService();
+
+    /* ==========================================================================
+       3. 20 GAMES DATABASE & DATA CONFIG
+       ========================================================================== */
+    const GAMES_DATA = [
+      // MATEMATIKA
+      {
+        id: 'math-dash',
+        title: '1. Math Speed Dash',
+        category: 'math',
+        catLabel: 'Matematika',
+        icon: '⚡',
+        difficulty: 'Mudah',
+        color: 'from-amber-500 to-red-500',
+        desc: 'Berhitung cepat penjumlahan, pengurangan, perkalian, dan pembagian sebelum waktu habis!'
+      },
+      {
+        id: 'fraction-builder',
+        title: '2. Fraction Builder',
+        category: 'math',
+        catLabel: 'Matematika',
+        icon: '🍕',
+        difficulty: 'Sedang',
+        color: 'from-orange-500 to-amber-500',
+        desc: 'Cocokkan bentuk potongan pecahan visual dengan nilai angka pecahan yang tepat.'
+      },
+      {
+        id: 'geometry-explorer',
+        title: '3. Geometry Explorer',
+        category: 'math',
+        catLabel: 'Matematika',
+        icon: '📐',
+        difficulty: 'Sedang',
+        color: 'from-yellow-500 to-emerald-500',
+        desc: 'Identifikasi bangun datar, hitung luas dan keliling berdasarkan dimensi yang diberikan.'
+      },
+      {
+        id: 'algebra-mystery',
+        title: '4. Algebra Mystery',
+        category: 'math',
+        catLabel: 'Matematika',
+        icon: '🔍',
+        difficulty: 'Sulit',
+        color: 'from-emerald-500 to-teal-500',
+        desc: 'Selesaikan persamaan aljabar linier sederhana (ax + b = c) untuk mencari nilai x.'
+      },
+
+      // BAHASA & LITERASI
+      {
+        id: 'word-scramble',
+        title: '5. Word Scramble',
+        category: 'lang',
+        catLabel: 'Bahasa & Literasi',
+        icon: '🔠',
+        difficulty: 'Mudah',
+        color: 'from-cyan-500 to-blue-500',
+        desc: 'Susun kembali huruf-huruf acak menjadi kata dalam Bahasa Indonesia yang benar.'
+      },
+      {
+        id: 'grammar-detective',
+        title: '6. Grammar Detective',
+        category: 'lang',
+        catLabel: 'Bahasa & Literasi',
+        icon: '🕵️',
+        difficulty: 'Sedang',
+        color: 'from-blue-500 to-indigo-500',
+        desc: 'Temukan dan perbaiki kesalahan tata bahasa (SPOK, ejaan) pada kalimat.'
+      },
+      {
+        id: 'vocab-builder',
+        title: '7. English Vocab Builder',
+        category: 'lang',
+        catLabel: 'Bahasa & Literasi',
+        icon: '🇬🇧',
+        difficulty: 'Mudah',
+        color: 'from-indigo-500 to-purple-500',
+        desc: 'Kuis padanan kata Inggris - Indonesia interaktif untuk memperbanyak kosakata.'
+      },
+      {
+        id: 'ai-story-copilot',
+        title: '8. AI Story Co-Pilot',
+        category: 'lang',
+        catLabel: 'Bahasa & Literasi',
+        icon: '📖',
+        difficulty: 'Sedang',
+        color: 'from-purple-500 to-pink-500',
+        desc: 'Petualangan cerita bercabang interaktif yang digenerasi secara dinamis oleh Gemini AI!'
+      },
+
+      // SAINS & ALAM
+      {
+        id: 'solar-quiz',
+        title: '9. Solar System Quiz',
+        category: 'science',
+        catLabel: 'Sains & Alam',
+        icon: '🪐',
+        difficulty: 'Mudah',
+        color: 'from-pink-500 to-rose-500',
+        desc: 'Kenali urutan planet, ciri khas benda langit, dan fakta astronomi menarik.'
+      },
+      {
+        id: 'cell-lab',
+        title: '10. Plant & Animal Cell Lab',
+        category: 'science',
+        catLabel: 'Sains & Alam',
+        icon: '🔬',
+        difficulty: 'Sedang',
+        color: 'from-emerald-600 to-teal-600',
+        desc: 'Identifikasi organel sel tumbuhan dan hewan beserta fungsinya secara interaktif.'
+      },
+      {
+        id: 'periodic-match',
+        title: '11. Periodic Table Match',
+        category: 'science',
+        catLabel: 'Sains & Alam',
+        icon: '🧪',
+        difficulty: 'Sulit',
+        color: 'from-blue-600 to-cyan-600',
+        desc: 'Cocokkan simbol unsur kimia (Fe, Au, Na) dengan nama dan nomor atomnya.'
+      },
+      {
+        id: 'physics-balance',
+        title: '12. Physics Balance',
+        category: 'science',
+        catLabel: 'Sains & Alam',
+        icon: '⚖️',
+        difficulty: 'Sedang',
+        color: 'from-indigo-600 to-blue-600',
+        desc: 'Simulasi timbangan fisika! Seimbangkan beban pada kedua sisi lengan tuas.'
+      },
+
+      // KODING & LOGIKA
+      {
+        id: 'command-maze',
+        title: '13. Logic Command Maze',
+        category: 'coding',
+        catLabel: 'Koding & Logika',
+        icon: '🤖',
+        difficulty: 'Sedang',
+        color: 'from-violet-600 to-purple-600',
+        desc: 'Susun urutan perintah kode (FORWARD, LEFT, RIGHT) untuk mengarahkan bot ke garis finish.'
+      },
+      {
+        id: 'pattern-solver',
+        title: '14. Number & Shape Pattern',
+        category: 'coding',
+        catLabel: 'Koding & Logika',
+        icon: '🧩',
+        difficulty: 'Mudah',
+        color: 'from-fuchsia-600 to-pink-600',
+        desc: 'Tebak pola barisan angka dan bentuk geometris selanjutnya yang logis.'
+      },
+      {
+        id: 'cipher-breaker',
+        title: '15. Secret Cipher Breaker',
+        category: 'coding',
+        catLabel: 'Koding & Logika',
+        icon: '🔐',
+        difficulty: 'Sulit',
+        color: 'from-rose-600 to-red-600',
+        desc: 'Pecahkan kode pesan rahasia menggunakan dekripsi slider pergeseran Caesar Cipher.'
+      },
+      {
+        id: 'binary-translator',
+        title: '16. Binary Code Translator',
+        category: 'coding',
+        catLabel: 'Koding & Logika',
+        icon: '0️⃣',
+        difficulty: 'Sedang',
+        color: 'from-amber-600 to-orange-600',
+        desc: 'Ubah sakelar bit (1 dan 0) untuk mengonversi angka biner ke desimal.'
+      },
+
+      // UMUM & SENI
+      {
+        id: 'geo-flag-master',
+        title: '17. Geo Flag & Map Master',
+        category: 'general',
+        catLabel: 'Umum & Seni',
+        icon: '🗺️',
+        difficulty: 'Mudah',
+        color: 'from-teal-500 to-emerald-500',
+        desc: 'Tebak bendera negara, ibu kota, dan benua dari berbagai penjuru dunia.'
+      },
+      {
+        id: 'history-timeline',
+        title: '18. History Timeline Quiz',
+        category: 'general',
+        catLabel: 'Umum & Seni',
+        icon: '🏛️',
+        difficulty: 'Sedang',
+        color: 'from-cyan-600 to-blue-700',
+        desc: 'Urutkan peristiwa sejarah penting Indonesia dan dunia secara kronologis.'
+      },
+      {
+        id: 'music-learner',
+        title: '19. Music Note Learner',
+        category: 'general',
+        catLabel: 'Umum & Seni',
+        icon: '🎵',
+        difficulty: 'Sedang',
+        color: 'from-indigo-500 to-purple-600',
+        desc: 'Dengarkan nada piano virtual dan tebak nama notasi musik (Do-Re-Mi / C4-B4).'
+      },
+      {
+        id: 'color-studio',
+        title: '20. Color Mixing Studio',
+        category: 'general',
+        catLabel: 'Umum & Seni',
+        icon: '🎨',
+        difficulty: 'Mudah',
+        color: 'from-pink-500 to-rose-600',
+        desc: 'Geser slider RGB (Red, Green, Blue) untuk mencocokkan target warna yang diminta!'
+      }
+    ];
+
+    const BADGES_LIST = [
+      { id: 'b1', name: 'Pembalap Mat', icon: '⚡', desc: 'Selesaikan Math Speed Dash' },
+      { id: 'b2', name: 'Pena Emas', icon: '📖', desc: 'Coba AI Story Co-Pilot' },
+      { id: 'b3', name: 'Ilmuwan Muda', icon: '🔬', desc: 'Kuasai Cell Lab / Periodic' },
+      { id: 'b4', name: 'Logika Master', icon: '🤖', desc: 'Selesaikan Command Maze' },
+      { id: 'b5', name: 'Maestro Seni', icon: '🎨', desc: 'Selesaikan Color Studio' },
+      { id: 'b6', name: 'Sahabat AI', icon: '🤖', desc: 'Gunakan fitur Tutor Gemini AI' }
+    ];
+
+    /* ==========================================================================
+       4. APPLICATION CONTROLLER & GAME ENGINE
+       ========================================================================== */
+    class AppController {
+      constructor() {
+        this.xp = parseInt(localStorage.getItem('eduverse_xp') || '0');
+        this.unlockedBadges = JSON.parse(localStorage.getItem('eduverse_badges') || '[]');
+        this.activeCategory = 'all';
+        this.activeGameId = null;
+        this.sessionScore = 0;
+        this.currentChoices = [];
+      }
+
+      init() {
+        this.updateStatsUI();
+        this.renderGamesGrid();
+        this.checkApiKeyDot();
+      }
+
+      updateStatsUI() {
+        document.getElementById('stat-xp').innerText = this.xp;
+        const level = Math.floor(this.xp / 100) + 1;
+        document.getElementById('stat-level').innerText = level;
+        document.getElementById('stat-badges-count').innerText = `${this.unlockedBadges.length}/${BADGES_LIST.length}`;
+      }
+
+      checkApiKeyDot() {
+        const key = geminiService.getApiKey();
+        const dot = document.getElementById('api-status-dot');
+        if (key && key.trim().length > 0) {
+          dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
+        } else {
+          dot.className = "w-2.5 h-2.5 rounded-full bg-amber-400";
+        }
+      }
+
+      addXP(amount) {
+        this.xp += amount;
+        this.sessionScore += amount;
+        localStorage.setItem('eduverse_xp', this.xp);
+        document.getElementById('game-session-score').innerText = this.sessionScore;
+        this.updateStatsUI();
+      }
+
+      unlockBadge(badgeId) {
+        if (!this.unlockedBadges.includes(badgeId)) {
+          this.unlockedBadges.push(badgeId);
+          localStorage.setItem('eduverse_badges', JSON.stringify(this.unlockedBadges));
+          this.updateStatsUI();
+          audioEngine.playWin();
+          const badgeObj = BADGES_LIST.find(b => b.id === badgeId);
+          if (badgeObj) {
+            alert(`🎉 Lencana Baru Terbuka: ${badgeObj.icon} ${badgeObj.name}!`);
+          }
+        }
+      }
+
+      setCategory(cat, evt) {
+        this.activeCategory = cat;
+        document.querySelectorAll('.cat-btn').forEach(btn => {
+          btn.className = "cat-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap bg-slate-800 hover:bg-slate-700 text-slate-300 transition";
+        });
+        const targetBtn = evt ? (evt.currentTarget || evt.target) : document.querySelector('.cat-btn');
+        if (targetBtn) {
+          targetBtn.className = "cat-btn active px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-brand-600 text-white transition shadow-sm";
+        }
+        audioEngine.playClick();
+        this.renderGamesGrid();
+      }
+
+      filterGames() {
+        this.renderGamesGrid();
+      }
+
+      renderGamesGrid() {
+        const grid = document.getElementById('games-grid');
+        const query = document.getElementById('search-input').value.toLowerCase();
+        grid.innerHTML = '';
+
+        const filtered = GAMES_DATA.filter(game => {
+          const matchCat = this.activeCategory === 'all' || game.category === this.activeCategory;
+          const matchSearch = game.title.toLowerCase().includes(query) || game.desc.toLowerCase().includes(query);
+          return matchCat && matchSearch;
+        });
+
+        if (filtered.length === 0) {
+          grid.innerHTML = `
+            <div class="col-span-full text-center py-12 text-slate-400">
+              <i class="fa-solid fa-ghost text-4xl mb-3"></i>
+              <p>Tidak ditemukan game yang sesuai dengan pencarian Anda.</p>
+            </div>
+          `;
+          return;
+        }
+
+        filtered.forEach(game => {
+          const card = document.createElement('div');
+          card.className = "glass-card rounded-2xl p-5 flex flex-col justify-between game-card-hover border border-slate-800 relative group overflow-hidden";
+          card.innerHTML = `
+            <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-gradient-to-br ${game.color} opacity-10 group-hover:opacity-25 transition"></div>
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-3xl">${game.icon}</span>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase bg-slate-800/90 border border-slate-700 text-slate-300">${game.difficulty}</span>
+              </div>
+              <h3 class="font-display font-bold text-base text-white group-hover:text-brand-400 transition mb-1">${game.title}</h3>
+              <p class="text-xs text-slate-400 line-clamp-2 mb-4 leading-relaxed">${game.desc}</p>
+            </div>
+            <div class="flex items-center justify-between pt-3 border-t border-slate-800/60">
+              <span class="text-[11px] font-semibold text-slate-400">${game.catLabel}</span>
+              <button onclick="app.launchGame('${game.id}')" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r ${game.color} text-white font-bold text-xs shadow-md transition transform active:scale-95 flex items-center gap-1.5">
+                <span>Mainkan</span>
+                <i class="fa-solid fa-play text-[10px]"></i>
+              </button>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      }
+
+      /* Launch Game Modal */
+      launchGame(gameId) {
+        audioEngine.playClick();
+        this.activeGameId = gameId;
+        this.sessionScore = 0;
+        document.getElementById('game-session-score').innerText = '0';
+        
+        const game = GAMES_DATA.find(g => g.id === gameId);
+        document.getElementById('game-modal-title').innerText = game.title;
+        document.getElementById('game-modal-category').innerText = game.catLabel;
+        document.getElementById('game-modal-icon').innerText = game.icon;
+
+        document.getElementById('game-modal').classList.remove('hidden');
+        
+        // Render Specific Game UI
+        this.renderGameWorkspace(gameId);
+      }
+
+      closeGameModal() {
+        audioEngine.playClick();
+        document.getElementById('game-modal').classList.add('hidden');
+        if (this.sessionScore > 0) {
+          this.showAIEvaluationModal();
+        }
+      }
+
+      /* Game Render Hub Router */
+      renderGameWorkspace(gameId) {
+        const ws = document.getElementById('game-workspace');
+        ws.innerHTML = '';
+        switch (gameId) {
+          case 'math-dash': this.initMathSpeedDash(ws); break;
+          case 'fraction-builder': this.initFractionBuilder(ws); break;
+          case 'geometry-explorer': this.initGeometryExplorer(ws); break;
+          case 'algebra-mystery': this.initAlgebraMystery(ws); break;
+          case 'word-scramble': this.initWordScramble(ws); break;
+          case 'grammar-detective': this.initGrammarDetective(ws); break;
+          case 'vocab-builder': this.initVocabBuilder(ws); break;
+          case 'ai-story-copilot': this.initAIStoryCopilot(ws); break;
+          case 'solar-quiz': this.initSolarQuiz(ws); break;
+          case 'cell-lab': this.initCellLab(ws); break;
+          case 'periodic-match': this.initPeriodicMatch(ws); break;
+          case 'physics-balance': this.initPhysicsBalance(ws); break;
+          case 'command-maze': this.initCommandMaze(ws); break;
+          case 'pattern-solver': this.initPatternSolver(ws); break;
+          case 'cipher-breaker': this.initCipherBreaker(ws); break;
+          case 'binary-translator': this.initBinaryTranslator(ws); break;
+          case 'geo-flag-master': this.initGeoFlagMaster(ws); break;
+          case 'history-timeline': this.initHistoryTimeline(ws); break;
+          case 'music-learner': this.initMusicLearner(ws); break;
+          case 'color-studio': this.initColorStudio(ws); break;
+          default:
+            ws.innerHTML = `<p class="text-slate-400">Game sedang dimuat...</p>`;
+        }
+      }
+
+      /* ==========================================================================
+         5. INDIVIDUAL GAME IMPLEMENTATIONS
+         ========================================================================== */
+      
+      // GAME 1: MATH SPEED DASH
+      initMathSpeedDash(ws) {
+        this.unlockBadge('b1');
+        let timeLeft = 30;
+        let score = 0;
+        let currentAns = 0;
+
+        const nextQ = () => {
+          const ops = ['+', '-', '*'];
+          const op = ops[Math.floor(Math.random() * ops.length)];
+          let a = Math.floor(Math.random() * 12) + 1;
+          let b = Math.floor(Math.random() * 12) + 1;
+          if (op === '-') { if (a < b) [a, b] = [b, a]; currentAns = a - b; }
+          else if (op === '+') { currentAns = a + b; }
+          else { currentAns = a * b; }
+          
+          document.getElementById('math-q').innerText = `${a} ${op} ${b} = ?`;
+        };
+
+        ws.innerHTML = `
+          <div class="text-center space-y-6 w-full max-w-sm">
+            <div class="flex justify-between items-center text-sm font-bold text-slate-300">
+              <span>Waktu: <span id="math-timer" class="text-amber-400 text-lg">30</span>s</span>
+              <span>Skor: <span id="math-score-text" class="text-emerald-400 text-lg">0</span></span>
+            </div>
+            <div id="math-q" class="text-4xl font-extrabold text-white bg-slate-900/90 py-6 rounded-2xl border border-slate-700 font-display">
+              Loading...
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <input type="number" id="math-input" placeholder="Jawaban..." class="col-span-2 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-center text-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <button id="math-submit-btn" class="col-span-2 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 font-bold text-white transition">Kirim (Enter)</button>
+            </div>
+          </div>
+        `;
+
+        nextQ();
+
+        const check = () => {
+          const inputEl = document.getElementById('math-input');
+          if (!inputEl) return;
+          const val = parseInt(inputEl.value);
+          if (val === currentAns) {
+            audioEngine.playCorrect();
+            score += 10;
+            this.addXP(10);
+            document.getElementById('math-score-text').innerText = score;
+            inputEl.value = '';
+            nextQ();
+          } else {
+            audioEngine.playWrong();
+          }
+        };
+
+        document.getElementById('math-submit-btn').addEventListener('click', check);
+        document.getElementById('math-input').addEventListener('keyup', (e) => { if (e.key === 'Enter') check(); });
+
+        const timer = setInterval(() => {
+          timeLeft--;
+          const el = document.getElementById('math-timer');
+          if (el) el.innerText = timeLeft;
+          if (timeLeft <= 0) {
+            clearInterval(timer);
+            if (document.getElementById('math-timer')) {
+              ws.innerHTML = `
+                <div class="text-center space-y-4">
+                  <h3 class="text-2xl font-bold text-white">Waktu Habis! ⏱️</h3>
+                  <p class="text-slate-300 text-sm">Total Poin Kamu: <strong class="text-amber-400 text-xl">${score} XP</strong></p>
+                  <button onclick="app.launchGame('math-dash')" class="px-6 py-2.5 rounded-xl bg-brand-600 text-white font-bold text-sm">Main Lagi</button>
+                </div>
+              `;
+            }
+          }
+        }, 1000);
+      }
+
+      // GAME 2: FRACTION BUILDER
+      initFractionBuilder(ws) {
+        const questions = [
+          { numerator: 1, denominator: 2, label: '1/2' },
+          { numerator: 3, denominator: 4, label: '3/4' },
+          { numerator: 1, denominator: 4, label: '1/4' },
+          { numerator: 2, denominator: 3, label: '2/3' }
+        ];
+        let qIdx = 0;
+
+        const renderQ = () => {
+          const curr = questions[qIdx % questions.length];
+
+          ws.innerHTML = `
+            <div class="text-center space-y-6 w-full max-w-md">
+              <h4 class="text-lg font-bold text-slate-200">Berapa Nilai Pecahan Diagram Di Bawah Ini?</h4>
+              
+              <div class="w-36 h-36 mx-auto relative">
+                <svg viewBox="0 0 32 32" class="w-full h-full rounded-full bg-slate-800 border-2 border-slate-700 transform -rotate-90">
+                  <circle r="16" cx="16" cy="16" fill="#3b82f6" stroke-dasharray="${(curr.numerator/curr.denominator)*100} 100" pathLength="100" />
+                </svg>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                ${questions.map((q, idx) => `
+                  <button onclick="app.checkFractionChoice(${idx === (qIdx % questions.length)})" class="py-3 rounded-xl bg-slate-800 hover:bg-brand-600 border border-slate-700 text-white font-bold text-base transition">
+                    ${q.label}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        };
+
+        this.checkFractionChoice = (isCorrect) => {
+          if (isCorrect) {
+            audioEngine.playCorrect();
+            this.addXP(20);
+            qIdx++;
+            renderQ();
+          } else {
+            audioEngine.playWrong();
+          }
+        };
+
+        renderQ();
+      }
+
+      // GAME 3: GEOMETRY EXPLORER
+      initGeometryExplorer(ws) {
+        const shapes = [
+          { name: 'Persegi', formula: 'L = s × s', dimensions: 'Sisi (s) = 6 cm', correctAns: 36 },
+          { name: 'Segitiga', formula: 'L = ½ × a × t', dimensions: 'Alas (a) = 8 cm, Tinggi (t) = 5 cm', correctAns: 20 },
+          { name: 'Persegi Panjang', formula: 'L = p × l', dimensions: 'Panjang = 10 cm, Lebar = 4 cm', correctAns: 40 }
+        ];
+        let idx = 0;
+
+        const render = () => {
+          const shape = shapes[idx % shapes.length];
+          ws.innerHTML = `
+            <div class="text-center space-y-5 w-full max-w-sm">
+              <span class="text-5xl block">📐</span>
+              <h4 class="font-bold text-xl text-white">${shape.name}</h4>
+              <p class="text-xs text-slate-400 bg-slate-900 p-2 rounded-lg border border-slate-800 font-mono">${shape.formula}</p>
+              <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 text-sm text-slate-200 font-semibold">
+                ${shape.dimensions}
+              </div>
+              <div class="flex gap-2">
+                <input type="number" id="geo-input" placeholder="Hitung Luas..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-center text-white font-bold focus:outline-none">
+                <button id="geo-btn" class="px-5 py-2.5 rounded-xl bg-brand-600 text-white font-bold text-xs">Jawab</button>
+              </div>
+            </div>
+          `;
+          document.getElementById('geo-btn').addEventListener('click', () => {
+            const val = parseInt(document.getElementById('geo-input').value);
+            if (val === shape.correctAns) {
+              audioEngine.playCorrect();
+              this.addXP(25);
+              idx++;
+              render();
+            } else {
+              audioEngine.playWrong();
+            }
+          });
+        };
+        render();
+      }
+
+      // GAME 4: ALGEBRA MYSTERY
+      initAlgebraMystery(ws) {
+        let xVal = Math.floor(Math.random() * 8) + 2;
+        let a = Math.floor(Math.random() * 5) + 2;
+        let b = Math.floor(Math.random() * 10) + 1;
+        let c = a * xVal + b;
+
+        ws.innerHTML = `
+          <div class="text-center space-y-6 w-full max-w-sm">
+            <span class="text-4xl">🔍</span>
+            <h4 class="text-base font-semibold text-slate-300">Cari nilai variabel <strong class="text-brand-400">x</strong>:</h4>
+            <div class="text-3xl font-extrabold text-white bg-slate-900 py-4 rounded-2xl border border-slate-700 tracking-wider">
+              ${a}x + ${b} = ${c}
+            </div>
+            <div class="flex gap-2">
+              <input type="number" id="alg-input" placeholder="Nilai x = ?" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-center text-xl text-white font-bold">
+              <button id="alg-btn" class="px-6 py-3 rounded-xl bg-emerald-600 text-white font-bold text-sm">Cek</button>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('alg-btn').addEventListener('click', () => {
+          const val = parseInt(document.getElementById('alg-input').value);
+          if (val === xVal) {
+            audioEngine.playCorrect();
+            this.addXP(30);
+            this.initAlgebraMystery(ws);
+          } else {
+            audioEngine.playWrong();
+          }
+        });
+      }
+
+      // GAME 5: WORD SCRAMBLE
+      initWordScramble(ws) {
+        const words = ['EDUKASI', 'KOMPUTER', 'GRAVITASI', 'SEJARAH', 'BIOLOGI'];
+        const word = words[Math.floor(Math.random() * words.length)];
+        const scrambled = word.split('').sort(() => 0.5 - Math.random()).join('');
+
+        ws.innerHTML = `
+          <div class="text-center space-y-6 w-full max-w-md">
+            <span class="text-4xl">🔠</span>
+            <h4 class="text-sm font-medium text-slate-300">Susun Kembali Huruf Acak Berikut:</h4>
+            <div class="text-3xl font-black text-amber-400 tracking-widest bg-slate-900/90 py-4 rounded-2xl border border-slate-800">
+              ${scrambled}
+            </div>
+            <div class="flex gap-2">
+              <input type="text" id="ws-input" placeholder="Kata yang benar..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-center text-white uppercase font-bold tracking-wider">
+              <button id="ws-btn" class="px-5 py-2.5 rounded-xl bg-brand-600 text-white font-bold text-xs">Jawab</button>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('ws-btn').addEventListener('click', () => {
+          const val = document.getElementById('ws-input').value.trim().toUpperCase();
+          if (val === word) {
+            audioEngine.playCorrect();
+            this.addXP(20);
+            this.initWordScramble(ws);
+          } else {
+            audioEngine.playWrong();
+          }
+        });
+      }
+
+      // GAME 6: GRAMMAR DETECTIVE
+      initGrammarDetective(ws) {
+        const cases = [
+          { sentence: "Mereka sedang makan di perpustakaan dengan tenang.", errorWord: "makan", fixOption: "membaca" },
+          { sentence: "Bumi mengelilingi bulan dalam waktu satu tahun.", errorWord: "bulan", fixOption: "matahari" }
+        ];
+        const c = cases[Math.floor(Math.random() * cases.length)];
+
+        ws.innerHTML = `
+          <div class="text-center space-y-5 w-full max-w-md">
+            <span class="text-4xl">🕵️</span>
+            <h4 class="text-sm font-semibold text-slate-300">Temukan Fakta/Tata Bahasa yang Keliru:</h4>
+            <p class="text-base text-white bg-slate-900 p-4 rounded-xl border border-slate-800 leading-relaxed">
+              "${c.sentence}"
+            </p>
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="app.checkGrammar(true)" class="py-2.5 rounded-xl bg-slate-800 hover:bg-brand-600 border border-slate-700 text-white text-xs font-bold transition">Kata '${c.errorWord}' salah -> Harus '${c.fixOption}'</button>
+              <button onclick="app.checkGrammar(false)" class="py-2.5 rounded-xl bg-slate-800 hover:bg-rose-600 border border-slate-700 text-white text-xs font-bold transition">Kalimat Sudah Benar</button>
+            </div>
+          </div>
+        `;
+
+        this.checkGrammar = (isCorrect) => {
+          if (isCorrect) {
+            audioEngine.playCorrect();
+            this.addXP(25);
+            this.initGrammarDetective(ws);
+          } else {
+            audioEngine.playWrong();
+          }
+        };
+      }
+
+      // GAME 7: ENGLISH VOCAB BUILDER
+      initVocabBuilder(ws) {
+        const vocabs = [
+          { en: 'Environment', id: 'Lingkungan', options: ['Pendidikan', 'Lingkungan', 'Kesehatan', 'Teknologi'] },
+          { en: 'Discovery', id: 'Penemuan', options: ['Penemuan', 'Perjalanan', 'Pencapaian', 'Pelajaran'] }
+        ];
+        const item = vocabs[Math.floor(Math.random() * vocabs.length)];
+        this.currentChoices = item.options;
+
+        ws.innerHTML = `
+          <div class="text-center space-y-6 w-full max-w-sm">
+            <span class="text-4xl">🇬🇧</span>
+            <div>
+              <span class="text-xs text-slate-400">Terjemahkan Kata Berikut:</span>
+              <h3 class="text-3xl font-extrabold text-white mt-1">${item.en}</h3>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              ${item.options.map((opt, idx) => `
+                <button onclick="app.checkVocab(${idx}, '${item.id}')" class="py-3 rounded-xl bg-slate-800 hover:bg-brand-600 border border-slate-700 text-white font-bold text-xs transition">
+                  ${opt}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+
+        this.checkVocab = (chosenIdx, correct) => {
+          const chosen = this.currentChoices[chosenIdx];
+          if (chosen === correct) {
+            audioEngine.playCorrect();
+            this.addXP(15);
+            this.initVocabBuilder(ws);
+          } else {
+            audioEngine.playWrong();
+          }
+        };
+      }
+
+      // GAME 8: AI STORY CO-PILOT
+      async initAIStoryCopilot(ws = document.getElementById('game-workspace')) {
+        this.unlockBadge('b2');
+        ws.innerHTML = `
+          <div class="text-center space-y-4">
+            <div class="w-10 h-10 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p class="text-xs text-slate-400">Gemini AI sedang menulis bagian cerita baru...</p>
+          </div>
+        `;
+
+        const prompt = "Buatkan cerita petualangan sains fiksi pendek 2 kalimat dalam Bahasa Indonesia dan berikan 2 pilihan keputusan alur selanjutnya.";
+        const text = await geminiService.generateContent(prompt, "Kamu adalah penulis cerita interaktif anak.");
+
+        ws.innerHTML = `
+          <div class="space-y-5 w-full max-w-md text-left">
+            <div class="flex items-center gap-2 text-purple-400 font-bold text-sm">
+              <i class="fa-solid fa-book-open"></i> Cerita Interaktif Gemini AI
+            </div>
+            <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl text-xs sm:text-sm text-slate-200 leading-relaxed">
+              ${text.replace(/\n/g, '<br>')}
+            </div>
+            <div class="flex justify-end gap-2">
+              <button onclick="app.initAIStoryCopilot()" class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-arrows-rotate"></i> Lanjutkan Cerita via AI (+25 XP)
+              </button>
+            </div>
+          </div>
+        `;
+        this.addXP(25);
+      }
+
+      // GAME 9: SOLAR SYSTEM QUIZ
+      initSolarQuiz(ws) {
+        const planets = [
+          { name: 'Jupiter', fact: 'Planet terbesar di Tata Surya kita dengan Bintik Merah Raksasa.' },
+          { name: 'Mars', fact: 'Dikenal sebagai Planet Merah karena kandungan besi oksida di permukaannya.' },
+          { name: 'Saturnus', fact: 'Terkenal dengan sistem cincin yang megah dari es dan debu.' }
+        ];
+        const p = planets[Math.floor(Math.random() * planets.length)];
+        this.currentChoices = planets.map(item => item.name);
+
+        ws.innerHTML = `
+          <div class="text-center space-y-6 w-full max-w-md">
+            <span class="text-5xl">🪐</span>
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 text-xs text-slate-300">
+              "${p.fact}"
+            </div>
+            <h4 class="text-sm font-semibold text-white">Planet apakah ini?</h4>
+            <div class="grid grid-cols-3 gap-2">
+              ${planets.map((item, idx) => `
+                <button onclick="app.checkPlanet(${idx}, '${p.name}')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-brand-600 border border-slate-700 text-white font-bold text-xs transition">${item.name}</button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+
+        this.checkPlanet = (chosenIdx, correct) => {
+          const chosen = this.currentChoices[chosenIdx];
+          if (chosen === correct) {
+            audioEngine.playCorrect();
+            this.addXP(20);
+            this.initSolarQuiz(ws);
+          } else {
+            audioEngine.playWrong();
+          }
+        };
+      }
+
+      // GAME 10: PLANT & ANIMAL CELL LAB
+      initCellLab(ws) {
+        this.unlockBadge('b3');
+        const organelles = [
+          { name: 'Mitokondria', role: 'Pusat penghasil energi sel (ATP)' },
+          { name: 'Kloroplas', role: 'Tempat berlangsungnya fotosintesis pada tumbuhan' },
+          { name: 'Nukleus', role: 'Pusat kendali dan penyimpan materi genetik (DNA)' }
+        ];
+        const target = organelles[Math.floor(Math.random() * organelles.length)];
+        this.currentChoices = organelles.map(o => o.name);
+
+        ws.innerHTML = `
+          <div class="text-center space-y-5 w-full max-w-md">
+            <span class="text-4xl">🔬</span>
+            <h4 class="text-sm font-semibold text-slate-300">Tebak Organel Sel Berdasarkan Fungsinya:</h4>
+            <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl text-xs text-emerald-400 font-semibold">
+              "${target.role}"
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              ${organelles.map((o, idx) => `
+                <button onclick="app.checkCell(${idx}, '${target.name}')" class="py-3 rounded-xl bg-slate-800 hover:bg-emerald-600 border border-slate-700 text-white text-xs font-bold transition">${o.name}</button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+
+        this.checkCell = (chosenIdx, correct) => {
+          const chosen = this.currentChoices[chosenIdx];
+          if (chosen === correct) {
+            audioEngine.playCorrect();
+            this.addXP(25);
+            this.initCellLab(ws);
+          } else {
+            audioEngine.playWrong();
+          }
+        };
+      }
+
+      // GAME 11: PERIODIC TABLE MATCH
+      initPeriodicMatch(ws) {
+        const elements = [
+          { symbol: 'Fe', name: 'Besi' },
+          { symbol: 'Au', name: 'Emas' },
+          { symbol: 'Na', name: 'Natrium' },
+          { symbol: 'O', name: 'Oksigen' }
+        ];
+        const el = elements[Math.floor(Math.random() * elements.length)];
+        this.currentChoices = elements.map(e => e.name);
+
+        ws.innerHTML = `
+          <div class="text-center space-y-5 w-full max-w-sm">
+            <span class="text-4xl">🧪</span>
+            <div>
+              <span class="text-xs text-slate-400">Simbol Unsur Kimia:</span>
+              <div class="text-4xl font-black text-cyan-400 font-mono mt-1">${el.symbol}</div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              ${elements.map((item, idx) => `
+                <button onclick="app.checkElement(${idx}, '${el.name}')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-cyan-600 border border-slate-700 text-white font-bold text-xs transition">${item.name}</button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+
+        this.checkElement = (chosenIdx, correct) => {
+          const chosen = this.currentChoices[chosenIdx];
+          if (chosen === correct) {
+            audioEngine.playCorrect();
+            this.addXP(20);
+            this.initPeriodicMatch(ws);
+          } else {
+            audioEngine.playWrong();
+          }
+        };
+      }
+
+      // GAME 12: PHYSICS BALANCE
+      initPhysicsBalance(ws) {
+        let weightRight = 10;
+        let distRight = 2; // Torque = 20
+        let distLeft = 4;
+        let requiredWeightLeft = (weightRight * distRight) / distLeft; // 5 kg
+
+        ws.innerHTML = `
+          <div class="text-center space-y-6 w-full max-w-md">
+            <span class="text-4xl">⚖️</span>
+            <h4 class="text-sm font-semibold text-slate-300">Seimbangkan Timbangan (Torsi = Beban × Jarak)</h4>
+            
+            <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 text-xs space-y-2">
+              <p>Sisi Kanan: <strong>${weightRight} kg</strong> pada jarak <strong>${distRight} m</strong> (Torsi: ${weightRight*distRight})</p>
+              <p>Sisi Kiri: Jarak = <strong>${distLeft} m</strong>. Berapa kg beban yang dibutuhkan?</p>
+            </div>
+
+            <div class="flex gap-2">
+              <input type="number" id="bal-input" placeholder="Beban Kiri (kg)..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-center text-white font-bold">
+              <button id="bal-btn" class="px-5 py-2.5 rounded-xl bg-brand-600 text-white font-bold text-xs">Uji Keseimbangan</button>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('bal-btn').addEventListener('click', () => {
+          const val = parseFloat(document.getElementById('bal-input').value);
+          if (val === requiredWeightLeft) {
+            audioEngine.playCorrect();
+            this.addXP(30);
+            this.initPhysicsBalance(ws);
+          } else {
+            audioEngine.playWrong();
+          }
+        });
+      }
+
+      // GAME 13: LOGIC COMMAND MAZE
+      initCommandMaze(ws) {
+        this.unlockBadge('b4');
+        let commands = [];
+        ws.innerHTML = `
+          <div class="text-center space-y-5 w-full max-w-md">
+            <span class="text-4xl">🤖</span>
+            <h4 class="text-sm font-semibold text-slate-300">Arahkan Robot ke Garis Finish [G-O-A-L]</h4>
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex justify-center items-center gap-4 text-2xl font-mono">
+              <span>🤖</span> ➔ <span>➡️</span> ➔ <span>➡️</span> ➔ <span>🎯</span>
+            </div>
+            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-xs text-slate-300 font-mono min-h-[40px]" id="cmd-list">
+              Urutan Kode: []
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="app.addMazeCmd('FORWARD')" class="py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-bold text-white">FORWARD</button>
+              <button onclick="app.addMazeCmd('LEFT')" class="py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-bold text-white">LEFT</button>
+              <button onclick="app.addMazeCmd('RIGHT')" class="py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-bold text-white">RIGHT</button>
+            </div>
+            <button onclick="app.runMazeCmd()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-bold text-white">JALANKAN KODE (RUN)</button>
+          </div>
+        `;
+
+        this.addMazeCmd = (cmd) => {
+          audioEngine.playClick();
+          commands.push(cmd);
+          document.getElementById('cmd-list').innerText = `Urutan Kode: [${commands.join(', ')}]`;
+        };
+
+        this.runMazeCmd = () => {
+          if (commands.length === 2 && commands[0] === 'FORWARD' && commands[1] === 'FORWARD') {
+            audioEngine.playCorrect();
+            this.addXP(30);
+            alert("🚀 Sukses! Robot berhasil mencapai garis finish!");
+            commands = [];
+            this.initCommandMaze(ws);
+          } else {
+            audioEngine.playWrong();
+            alert("❌ Alur kode belum tepat. Coba susun kembali perintahnya!");
+            commands = [];
+            document.getElementById('cmd-list').innerText = `Urutan Kode: []`;
+          }
+        };
+      }
+
+      // GAME 14: NUMBER & SHAPE PATTERN
+      initPatternSolver(ws) {
+        const patterns = [
+          { seq: '2, 4, 8, 16, ?', ans: 32 },
+          { seq: '5, 10, 15, 20, ?', ans: 25 },
+          { seq: '3, 9, 27, ?', ans: 81 }
+        ];
+        const p = patterns[Math.floor(Math.random() * patterns.length)];
+
+        ws.innerHTML = `
+          <div class="text-center space-y-6 w-full max-w-sm">
+            <span class="text-4xl">🧩</span>
+            <h4 class="text-sm font-semibold text-slate-300">Tebak Angka Selanjutnya dalam Pola:</h4>
+            <div class="text-3xl font-black text-purple-400 bg-slate-900 py-4 rounded-2xl border border-slate-800 font-mono">
+              ${p.seq}
+            </div>
+            <div class="flex gap-2">
+              <input type="number" id="pat-input" placeholder="Angka..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-center text-white font-bold">
+              <button id="pat-btn" class="px-5 py-2.5 rounded-xl bg-brand-600 text-white font-bold text-xs">Jawab</button>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('pat-btn').addEventListener('click', () => {
+          const val = parseInt(document.getElementById('pat-input').value);
+          if (val === p.ans) {
+            audioEngine.playCorrect();
+            this.addXP(20);
+            this.initPatternSolver(ws);
+          } else {
+            audioEngine.playWrong();
+          }
+        });
+      }
+
+      // GAME 15: SECRET CIPHER BREAKER
+      initCipherBreaker(ws) {
+        ws.innerHTML = `
+          <div class="text-center space-y-5 w-full max-w-md">
+            <span class="text-4xl">🔐</span>
+            <h4 class="text-sm font-semibold text-slate-300">Pesan Rahasia Terenkripsi (Caesar Shift +1):</h4>
+            <div class="text-3xl font-black text-rose-400 font-mono bg-slate-900 py-3 rounded-xl border border-slate-800">
+              IBMP
+            </div>
+            <p class="text-xs text-slate-400">Geser setiap huruf 1 langkah ke belakang di abjad.</p>
+            <div class="flex gap-2">
+              <input type="text" id="ciph-input" placeholder="Pesan terdekripsi..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-center uppercase text-white font-bold">
+              <button id="ciph-btn" class="px-5 py-2.5 rounded-xl bg-rose-600 text-white font-bold text-xs">Buka Kode</button>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('ciph-btn').addEventListener('click', () => {
+          const val = document.getElementById('ciph-input').value.trim().toUpperCase();
+          if (val === 'HALO') {
+            audioEngine.playCorrect();
+            this.addXP(30);
+            alert("🔓 Selamat! Rahasia berhasil terpecahkan!");
+            this.initCipherBreaker(ws);
+          } else {
+            audioEngine.playWrong();
+          }
+        });
+      }
+
+      // GAME 16: BINARY CODE TRANSLATOR
+      initBinaryTranslator(ws) {
+        let bits = [0, 1, 0, 1];
+        
+        const renderBits = () => {
+          const decimalVal = bits[0] * 8 + bits[1] * 4 + bits[2] * 2 + bits[3] * 1;
+          ws.innerHTML = `
+            <div class="text-center space-y-6 w-full max-w-md">
+              <span class="text-4xl">0️⃣</span>
+              <h4 class="text-sm font-semibold text-slate-300">Ubah Sakelar Bit Biner Untuk Membentuk Angka Desimal <strong class="text-amber-400 text-lg">5</strong>:</h4>
+              
+              <div class="flex justify-center gap-3">
+                ${bits.map((b, idx) => `
+                  <button onclick="app.toggleBit(${idx})" class="w-14 h-16 rounded-2xl flex flex-col items-center justify-center font-mono font-bold text-xl border transition ${b === 1 ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-lg shadow-amber-500/20' : 'bg-slate-800 text-slate-400 border-slate-700'}">
+                    <span>${b}</span>
+                    <span class="text-[9px] font-normal text-slate-400">${Math.pow(2, 3-idx)}</span>
+                  </button>
+                `).join('')}
+              </div>
+
+              <div class="text-xs text-slate-400">
+                Nilai Desimal Saat Ini: <strong class="text-white text-sm">${decimalVal}</strong>
+              </div>
+            </div>
+          `;
+
+          if (decimalVal === 5) {
+            setTimeout(() => {
+              audioEngine.playCorrect();
+              this.addXP(25);
+              alert("🎉 Tepat Sekali! Biner 0101 = Desimal 5");
+            }, 100);
+          }
+        };
+
+        this.toggleBit = (idx) => {
+          bits[idx] = bits[idx] === 1 ? 0 : 1;
+          audioEngine.playClick();
+          renderBits();
+        };
+
+        renderBits();
+      }
+
+      // GAME 17: GEO FLAG & MAP MASTER
+      initGeoFlagMaster(ws) {
+        const flags = [
+          { country: 'Indonesia', flag: '🇮🇩', capital: 'Jakarta' },
+          { country: 'Jepang', flag: '🇯🇵', capital: 'Tokyo' },
+          { country: 'Prancis', flag: '🇫🇷', capital: 'Paris' }
+        ];
+        const item = flags[Math.floor(Math.random() * flags.length)];
+        this.currentChoices = flags.map(f => f.capital);
+
+        ws.innerHTML = `
+          <div class="text-center space-y-5 w-full max-w-sm">
+            <span class="text-6xl">${item.flag}</span>
+            <h4 class="text-sm font-semibold text-slate-300">Apa Ibu Kota dari Negara <strong class="text-white">${item.country}</strong>?</h4>
+            <div class="grid grid-cols-3 gap-2">
+              ${flags.map((f, idx) => `
+                <button onclick="app.checkCapital(${idx}, '${item.capital}')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-teal-600 border border-slate-700 text-white font-bold text-xs transition">${f.capital}</button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+
+        this.checkCapital = (chosenIdx, correct) => {
+          const chosen = this.currentChoices[chosenIdx];
+          if (chosen === correct) {
+            audioEngine.playCorrect();
+            this.addXP(20);
+            this.initGeoFlagMaster(ws);
+          } else {
+            audioEngine.playWrong();
+          }
+        };
+      }
+
+      // GAME 18: HISTORY TIMELINE QUIZ
+      initHistoryTimeline(ws) {
+        const events = [
+          { year: 1945, title: 'Proklamasi Kemerdekaan Indonesia' },
+          { year: 1928, title: 'Sumpah Pemuda' }
+        ];
+
+        ws.innerHTML = `
+          <div class="text-center space-y-5 w-full max-w-md">
+            <span class="text-4xl">🏛️</span>
+            <h4 class="text-sm font-semibold text-slate-300">Pada Tahun Berapakah Peristiwa Ini Terjadi?</h4>
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl text-sm font-bold text-amber-400">
+              "${events[0].title}"
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="app.checkHistory(1945, 1945)" class="py-3 bg-slate-800 hover:bg-brand-600 border border-slate-700 rounded-xl font-bold text-white text-sm">1945</button>
+              <button onclick="app.checkHistory(1928, 1945)" class="py-3 bg-slate-800 hover:bg-brand-600 border border-slate-700 rounded-xl font-bold text-white text-sm">1928</button>
+            </div>
+          </div>
+        `;
+
+        this.checkHistory = (chosen, correct) => {
+          if (chosen === correct) {
+            audioEngine.playCorrect();
+            this.addXP(25);
+            this.initHistoryTimeline(ws);
+          } else {
+            audioEngine.playWrong();
+          }
+        };
+      }
+
+      // GAME 19: MUSIC NOTE LEARNER
+      initMusicLearner(ws) {
+        const notes = [
+          { name: 'Do (C4)', freq: 261.63 },
+          { name: 'Mi (E4)', freq: 329.63 },
+          { name: 'Sol (G4)', freq: 392.00 }
+        ];
+        let target = notes[Math.floor(Math.random() * notes.length)];
+        this.currentChoices = notes.map(n => n.name);
+
+        ws.innerHTML = `
+          <div class="text-center space-y-6 w-full max-w-md">
+            <span class="text-4xl">🎵</span>
+            <h4 class="text-sm font-semibold text-slate-300">Dengarkan Nada Piano dan Tebak Notasinya:</h4>
+            <button onclick="audioEngine.playNote(${target.freq}, 'triangle', 0.5)" class="px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-2xl text-white font-bold text-xs flex items-center gap-2 mx-auto shadow-lg shadow-purple-500/20">
+              <i class="fa-solid fa-volume-high"></i> Putar Nada
+            </button>
+            <div class="grid grid-cols-3 gap-2">
+              ${notes.map((n, idx) => `
+                <button onclick="app.checkMusicNote(${idx}, '${target.name}')" class="py-3 bg-slate-800 hover:bg-purple-600 border border-slate-700 rounded-xl font-bold text-white text-xs transition">${n.name}</button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+
+        this.checkMusicNote = (chosenIdx, correct) => {
+          const chosen = this.currentChoices[chosenIdx];
+          if (chosen === correct) {
+            audioEngine.playCorrect();
+            this.addXP(20);
+            this.initMusicLearner(ws);
+          } else {
+            audioEngine.playWrong();
+          }
+        };
+      }
+
+      // GAME 20: COLOR MIXING STUDIO
+      initColorStudio(ws) {
+        this.unlockBadge('b5');
+        let r = 128, g = 0, b = 255;
+
+        const updateMixer = () => {
+          const userR = document.getElementById('r-slider').value;
+          const userG = document.getElementById('g-slider').value;
+          const userB = document.getElementById('b-slider').value;
+          document.getElementById('user-color-preview').style.backgroundColor = `rgb(${userR},${userG},${userB})`;
+        };
+
+        ws.innerHTML = `
+          <div class="text-center space-y-5 w-full max-w-md">
+            <span class="text-4xl">🎨</span>
+            <h4 class="text-sm font-semibold text-slate-300">Geser Slider RGB Untuk Mencocokkan Warna Target:</h4>
+            
+            <div class="flex justify-around items-center">
+              <div>
+                <span class="text-[10px] text-slate-400 block mb-1">Target Warna</span>
+                <div class="w-16 h-16 rounded-2xl border-2 border-slate-700 shadow-md" style="background-color: rgb(${r},${g},${b});"></div>
+              </div>
+              <i class="fa-solid fa-equals text-slate-500"></i>
+              <div>
+                <span class="text-[10px] text-slate-400 block mb-1">Warna Kamu</span>
+                <div id="user-color-preview" class="w-16 h-16 rounded-2xl border-2 border-slate-700 shadow-md bg-black"></div>
+              </div>
+            </div>
+
+            <div class="space-y-2 text-left bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+              <label class="text-[10px] text-rose-400 font-bold block">Red (R)</label>
+              <input type="range" id="r-slider" min="0" max="255" value="0" oninput="app.updateColorMixer()" class="w-full accent-rose-500">
+              <label class="text-[10px] text-emerald-400 font-bold block">Green (G)</label>
+              <input type="range" id="g-slider" min="0" max="255" value="0" oninput="app.updateColorMixer()" class="w-full accent-emerald-500">
+              <label class="text-[10px] text-blue-400 font-bold block">Blue (B)</label>
+              <input type="range" id="b-slider" min="0" max="255" value="0" oninput="app.updateColorMixer()" class="w-full accent-blue-500">
+            </div>
+
+            <button onclick="app.checkColorMatch(${r},${g},${b})" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 rounded-xl text-white font-bold text-xs">Uji Kemiripan Warna</button>
+          </div>
+        `;
+
+        this.updateColorMixer = updateMixer;
+        updateMixer();
+
+        this.checkColorMatch = (tr, tg, tb) => {
+          const ur = parseInt(document.getElementById('r-slider').value);
+          const ug = parseInt(document.getElementById('g-slider').value);
+          const ub = parseInt(document.getElementById('b-slider').value);
+
+          const diff = Math.abs(tr - ur) + Math.abs(tg - ug) + Math.abs(tb - ub);
+          if (diff < 80) {
+            audioEngine.playCorrect();
+            this.addXP(30);
+            alert("✨ Luar biasa! Pencampuran warna sangat akurat!");
+            this.initColorStudio(ws);
+          } else {
+            audioEngine.playWrong();
+            alert("🎨 Masih kurang pas, sesuaikan kembali komposisi warnanya!");
+          }
+        };
+      }
+
+      /* ==========================================================================
+         6. GEMINI TUTOR & AI MODALS HANDLERS
+         ========================================================================== */
+      openGlobalTutor() {
+        this.unlockBadge('b6');
+        document.getElementById('tutor-drawer').classList.remove('translate-x-full');
+      }
+
+      closeTutorDrawer() {
+        document.getElementById('tutor-drawer').classList.add('translate-x-full');
+      }
+
+      askCurrentGameTutor() {
+        this.openGlobalTutor();
+        const game = GAMES_DATA.find(g => g.id === this.activeGameId);
+        const title = game ? game.title : 'Game Edukasi';
+        const msg = `Berikan saya petunjuk atau cara menyelesaikan permainan ${title}.`;
+        this.sendTutorQuery(msg);
+      }
+
+      async handleTutorSubmit(e) {
+        e.preventDefault();
+        const input = document.getElementById('tutor-input');
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        await this.sendTutorQuery(text);
+      }
+
+      async sendTutorQuery(text) {
+        const box = document.getElementById('tutor-messages');
+        box.innerHTML += `
+          <div class="bg-brand-600/30 border border-brand-500/40 rounded-2xl p-3 text-right text-white">
+            ${text}
+          </div>
+        `;
+        box.scrollTop = box.scrollHeight;
+
+        const loadingId = 'loading-' + Date.now();
+        box.innerHTML += `
+          <div id="${loadingId}" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-3 text-slate-400 text-xs flex items-center gap-2">
+            <i class="fa-solid fa-spinner animate-spin text-brand-400"></i> Gemini AI sedang berpikir...
+          </div>
+        `;
+        box.scrollTop = box.scrollHeight;
+
+        const responseText = await geminiService.generateContent(text);
+        document.getElementById(loadingId)?.remove();
+
+        box.innerHTML += `
+          <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-3 text-slate-200">
+            ${responseText.replace(/\n/g, '<br>')}
+          </div>
+        `;
+        box.scrollTop = box.scrollHeight;
+      }
+
+      async generateAIQuizCurrentGame() {
+        const ws = document.getElementById('game-workspace');
+        ws.innerHTML = `
+          <div class="text-center space-y-3">
+            <i class="fa-solid fa-wand-magic-sparkles text-3xl text-brand-400 animate-bounce"></i>
+            <p class="text-xs text-slate-300 font-semibold">Gemini AI sedang membuatkan kuis baru untuk game ini...</p>
+          </div>
+        `;
+        const game = GAMES_DATA.find(g => g.id === this.activeGameId);
+        const quizData = await geminiService.generateQuizJSON(game ? game.title : 'Edukasi');
+
+        if (quizData && quizData.length > 0) {
+          const q = quizData[0];
+          ws.innerHTML = `
+            <div class="text-center space-y-5 w-full max-w-md">
+              <span class="text-[10px] font-bold uppercase tracking-widest text-brand-400 bg-brand-900/50 px-3 py-1 rounded-full border border-brand-500/40">✨ Generated by Gemini AI</span>
+              <h4 class="text-base font-bold text-white">${q.question}</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                ${q.options.map((opt, idx) => `
+                  <button onclick="app.checkAIQuizAns(${idx === q.answerIndex})" class="py-2.5 px-3 bg-slate-800 hover:bg-brand-600 border border-slate-700 rounded-xl text-xs font-bold text-white text-left transition flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-slate-700 text-center text-[10px] flex items-center justify-center">${String.fromCharCode(65+idx)}</span>
+                    <span>${opt}</span>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        } else {
+          ws.innerHTML = `<div class="text-center text-slate-400 text-xs">Gagal memuat kuis AI. Mencoba memuat ulang...</div>`;
+          setTimeout(() => this.renderGameWorkspace(this.activeGameId), 1500);
+        }
+      }
+
+      checkAIQuizAns(isCorrect) {
+        if (isCorrect) {
+          audioEngine.playCorrect();
+          this.addXP(35);
+          alert("🎉 Jawaban kamu tepat sekali! (+35 XP)");
+          this.renderGameWorkspace(this.activeGameId);
+        } else {
+          audioEngine.playWrong();
+          alert("❌ Jawaban belum tepat, ayo coba lagi!");
+        }
+      }
+
+      async showAIEvaluationModal() {
+        document.getElementById('eval-modal').classList.remove('hidden');
+        document.getElementById('eval-score').innerText = `+${this.sessionScore} XP`;
+        document.getElementById('eval-text').innerText = "Menghubungkan ke Gemini AI untuk menganalisis performa kamu...";
+
+        const prompt = `Berikan rangkuman evaluasi apresiatif dan saran belajar 2 kalimat pendek untuk anak yang baru saja menyelesaikan permainan edukasi dengan skor ${this.sessionScore} XP.`;
+        const evalRes = await geminiService.generateContent(prompt);
+        document.getElementById('eval-text').innerText = evalRes;
+      }
+
+      closeEvalModal() {
+        document.getElementById('eval-modal').classList.add('hidden');
+      }
+
+      showSettingsModal() {
+        document.getElementById('api-key-input').value = geminiService.getApiKey();
+        document.getElementById('settings-modal').classList.remove('hidden');
+      }
+
+      closeSettingsModal() {
+        document.getElementById('settings-modal').classList.add('hidden');
+      }
+
+      saveApiKey() {
+        const val = document.getElementById('api-key-input').value.trim();
+        localStorage.setItem('gemini_api_key', val);
+        this.checkApiKeyDot();
+        this.closeSettingsModal();
+        audioEngine.playClick();
+        alert("✅ Pengaturan Gemini API Key berhasil disimpan!");
+      }
+
+      showBadgesModal() {
+        const container = document.getElementById('badges-container');
+        container.innerHTML = '';
+        BADGES_LIST.forEach(b => {
+          const isUnlocked = this.unlockedBadges.includes(b.id);
+          const el = document.createElement('div');
+          el.className = `p-3 rounded-2xl border text-center transition ${isUnlocked ? 'bg-slate-800/90 border-purple-500/50 text-white' : 'bg-slate-900/50 border-slate-800 text-slate-500 opacity-60'}`;
+          el.innerHTML = `
+            <div class="text-3xl mb-1">${b.icon}</div>
+            <div class="font-bold text-xs mb-0.5">${b.name}</div>
+            <div class="text-[10px] text-slate-400">${b.desc}</div>
+          `;
+          container.appendChild(el);
+        });
+        document.getElementById('badges-modal').classList.remove('hidden');
+      }
+
+      closeBadgesModal() {
+        document.getElementById('badges-modal').classList.add('hidden');
+      }
+
+      showHub() {
+        this.closeGameModal();
+        audioEngine.playClick();
+      }
+    }
+
+    /* Instantiate Application early & initialize on DOM Ready */
+    window.app = new AppController();
+    window.addEventListener('DOMContentLoaded', () => {
+      window.app.init();
+    });
+  </script>
+</body>
+</html>
